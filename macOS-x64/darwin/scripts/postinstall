@@ -1,0 +1,75 @@
+#!/bin/bash
+
+#Custermize this for your application
+APPLICATION_FILE_PATH=bin/wso2server.sh
+
+#Parameters
+PRODUCT_HOME=/Applications/__PRODUCT__
+APP_NAME=__PRODUCT__.app
+
+echo "Post installation process started"
+
+if [ -d /Applications/${APP_NAME} ]; then
+   sudo rm -rf /Applications/${APP_NAME} || { echo "Failed to delete existing application"; exit 1; }
+fi
+
+
+#Change permissions in home directory
+echo "Change permissions in product home"
+cd ${PRODUCT_HOME}
+chmod -R 755 .
+[ -d /usr/local/bin ] || mkdir /usr/local/bin
+
+#Add application shortcut to /usr/local/bin
+rm -f /usr/local/bin/__PRODUCT__-__VERSION__
+ln -s ${PRODUCT_HOME}/${APPLICATION_FILE_PATH} /usr/local/bin/__PRODUCT__-__VERSION__
+echo "Post installation process finished"
+
+# ---------->>>>>>>>>>> Location permission
+# Path to the Info.plist file
+plist_file="${PRODUCT_HOME}/${APP_NAME}/Contents/Info.plist"
+
+# Function to extract the application identifier from the Info.plist file
+get_app_identifier() {
+    local plist_file="$1"
+    local app_identifier=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$plist_file")
+    echo "$app_identifier"
+}
+
+# Get the application identifier
+app_identifier=$(get_app_identifier "$plist_file")
+
+tccutil reset Location ${app_identifier}
+# ---->>>>>>
+
+# Verify the existence of poker.app
+if [ -d "${PRODUCT_HOME}/poker.app" ]; then
+    # Move poker.app to the target directory
+    mv ${PRODUCT_HOME}/poker.app ${PRODUCT_HOME}/${APP_NAME}/Contents/Resources/
+    echo "poker.app has been moved successfully."
+else
+    echo "poker.app does not exist in the __PRODUCT__ directory."
+fi
+
+# Verify the existence of poker.app
+if [ -d "${PRODUCT_HOME}/poker.app" ]; then
+    # Delete poker.app
+    rm -rf ${PRODUCT_HOME}/poker.app
+    echo "poker.app deleted successfully."
+else
+    echo "poker.app does not exist in the __PRODUCT__ directory."
+fi
+
+#UNITY_APP_PATH=${PRODUCT_HOME}/${APP_NAME}/${APP_NAME}.app/Contents/Resources/poker.app
+#
+#chmod -R 755 ${UNITY_APP_PATH}
+#
+#open -a ${UNITY_APP_PATH}
+
+
+chmod -R 755 ${PRODUCT_HOME}/${APP_NAME}
+
+# Auto-launch the application
+open -a ${PRODUCT_HOME}/${APP_NAME}
+
+

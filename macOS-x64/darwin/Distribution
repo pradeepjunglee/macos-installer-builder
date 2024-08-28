@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-script minSpecVersion="1.000000">
+    <title>__PRODUCT__</title>
+    <background mime-type="image/png" file="__PRODUCT__Dark.png" scaling="proportional"/>
+    <background-darkAqua mime-type="image/png" file="__PRODUCT__.png" scaling="proportional"/>
+    <welcome file="welcome.html" mime-type="text/html" />
+    <conclusion file="conclusion.html" mime-type="text/html" />
+
+    <!-- Remove screens and options -->
+    <!-- <license file="LICENSE.txt"/> -->
+
+    <!-- Options to control installer behavior -->
+    <options customize="never" allow-external-scripts="no"/>
+    <domains enable_localSystem="true" />
+    <!-- <installation-check script="installCheck();"/> -->
+    <script>
+function installCheck() {
+    if(!(system.compareVersions(system.version.ProductVersion, '10.6.0') >= 0)) {
+        my.result.title = 'Unable to install';
+        my.result.message = '__PRODUCT__ requires Mac OS X 10.6 or later.';
+        my.result.type = 'Fatal';
+        return false;
+    }
+    if(system.files.fileExistsAtPath('/Applications/')) {
+        my.result.title = 'Previous Installation Detected';
+        my.result.message = 'A previous installation of __PRODUCT__ exists at /Applications/. This installer will remove the previous installation prior to installing. Please back up any data before proceeding.';
+        my.result.type = 'Warning';
+        return false;
+    }
+    return true;
+}
+    </script>
+    <choices-outline>
+        <line choice="__PRODUCT__"/>
+    </choices-outline>
+    <choice id="__PRODUCT__" title="__PRODUCT__">
+        <pkg-ref id="__PRODUCT__.pkg"/>
+    </choice>
+    <pkg-ref id="__PRODUCT__.pkg" auth="Root">__PRODUCT__.pkg</pkg-ref>
+    <script>
+        function requestLocationPermission() {
+            var appPath = "/Applications/__PRODUCT__.app";
+            var command = "osascript -e 'tell application \"System Events\" to set frontmost of process \"Installer\" to true' -e 'tell application \"System Events\" to display dialog \"This application requires location access. Please grant permission.\" buttons {\"OK\"} default button \"OK\"' -e 'do shell script \"tccutil reset All com.yourcompany.yourapp\"' -e 'do shell script \"tccutil grant com.yourcompany.yourapp\"'";
+            system.run(command);
+        }
+    </script>
+</installer-script>
